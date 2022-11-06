@@ -104,7 +104,7 @@ class Otutu(scrapy.Spider):
             elif des_key[i] == "Comfort Features":
                 features = [element.strip() for element in des_value[i].split(",")]
                 if "Air-Conditioning" in features:
-                    output["ac_installed"] = 0
+                    output["ac_installed"] = 1
                 if "4 Wheel Drive" in features:
                     output["drive_train"] = "4 Wheel Drive"
                 if "Leather Seat" in features:
