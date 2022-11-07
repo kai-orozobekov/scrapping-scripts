@@ -10,7 +10,7 @@ from scrapy import Request, Selector
 class CarxusSpider(scrapy.Spider):
     name = "carxus"
     allowed_domains = ["www.carxus.com"]
-    start_urls = ["https://www.carxus.com/en/Inventory/Search?country=1"]
+    start_urls = ["https://www.carxus.com/en/Inventory/Search?country=151"]
 
     def start_requests(self):
         for url in self.start_urls:
@@ -75,28 +75,31 @@ class CarxusSpider(scrapy.Spider):
                 ]
             )
 
-        titles = sel.css("div.veh-main-header span::text").getall()
-        front_title = titles[0].split(" -")[0].split(" ")
-        output["year"] = int(front_title[0])
-        output["make"] = front_title[1]
-        output["model"] = " ".join(front_title[2:]).strip()
+            try:
+                titles = sel.css("div.veh-main-header span::text").getall()
+                front_title = titles[0].split(" -")[0].split(" ")
+                output["year"] = int(front_title[0])
+                output["make"] = front_title[1]
+                output["model"] = " ".join(front_title[2:]).strip()
+            except IndexError:
+                pass
 
         # pricing details
         price_field = sel.xpath('//div[@class="veh-details-price-container"]/div')
-        price = price_field.xpath("./span[2]/text()").get().replace(",", "")
+        price = price_field.xpath("./span[2]/text()").get()
         currency = price_field.xpath("./span[1]/text()").get()
-        output["price_retail"] = float(price)
-        output["currency"] = currency
+        if price is not None:
+            output["price_retail"] = float(price.replace(",", ""))
+            output["currency"] = currency
 
         # dealer name
-        seller_info = (
-            sel.xpath('//div[@class="veh-tech-data-header"]/text()').get().strip()
-        )
-        if "dealer" in seller_info.lower():
-            dealer_info = sel.xpath(
-                '//div[@class="veh-details-text-data-container"]//table//tr[1]/td/span/text()'
-            ).get()
-            output["dealer_name"] = dealer_info
+        seller_info = sel.xpath('//div[@class="veh-tech-data-header"]/text()').get()
+        if seller_info is not None:
+            if "dealer" in seller_info.strip().lower():
+                dealer_info = sel.xpath(
+                    '//div[@class="veh-details-text-data-container"]//table//tr[1]/td/span/text()'
+                ).get()
+                output["dealer_name"] = dealer_info
 
         # vehicle specifications
         keys = [
@@ -126,10 +129,7 @@ class CarxusSpider(scrapy.Spider):
                 if key == "location":
                     location_value = value.split(",")
                     if len(location_value) == 2:
-                        if output["country"].lower() == "united states":
-                            output["state_or_province"] = location_value[1].strip()
-                        else:
-                            output["city"] = location_value[1].strip()
+                        output["city"] = location_value[1].strip()
 
                 elif key == "mileage":
                     output["odometer_value"] = int(
@@ -166,18 +166,18 @@ class CarxusSpider(scrapy.Spider):
 
                 elif key == "engine":
                     engine_value = value
-                    contains_engine_value = re.search(
+                    contains_engine_value_l = re.search(
                         "([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[eE]([+-]?\d+))?L",
                         engine_value,
                     )
-                    if contains_engine_value:
+                    if contains_engine_value_l:
                         output[
                             "engine_displacement_value"
-                        ] = contains_engine_value.group(1)
+                        ] = contains_engine_value_l.group(1)
                         output["engine_displacement_units"] = "L"
 
                         engine_cylinders = engine_value.replace(
-                            f"{contains_engine_value.group(1)}L", ""
+                            f"{contains_engine_value_l.group(1)}L", ""
                         ).strip()
 
                         if "cylinder" in engine_cylinders.lower():
@@ -187,6 +187,23 @@ class CarxusSpider(scrapy.Spider):
                             output["engine_cylinders"] = int(
                                 list(engine_cylinders_value)[0]
                             )
+                    else:
+                        contains_engine_value_cc = re.search(
+                            "([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[eE]([+-]?\d+))?CC",
+                            engine_value,
+                        )
+                        if contains_engine_value_cc:
+                            output[
+                                "engine_displacement_value"
+                            ] = contains_engine_value_cc.group(1)
+                            output["engine_displacement_units"] = "CC"
+
+                        if "cylinder" in engine_value.lower():
+                            engine_cylinders_value = filter(
+                                lambda char: char.isnumeric(), list(engine_value)
+                            )
+                            output["engine_cylinders"] = int(
+                                list(engine_cylinders_value)[0]
+                            )
 
         # apify.pushData(output)
-        print(output)
