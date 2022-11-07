@@ -11,7 +11,6 @@ class OlxAutos(scrapy.Spider):
     name = "olx"
     download_timeout = 120
     page = 0
-    users = ["184534c460ax6931d70e", "18199604c02x5228328e"]
     url = "https://www.olxautos.com.mx/api/relevance/v2/search?"
     params = {
         "category": "84",
@@ -20,20 +19,17 @@ class OlxAutos(scrapy.Spider):
         "location_facet_limit": "20",
         "page": None,
         "platform": "web-desktop",
-        "size": "80",
-        "user": users[0],
+        "size": "40",
+        "user": "18199604c02x5228328e",
     }
 
     def start_requests(self):
         self.params["page"] = self.page
-        # category=84&facet_limit=100&location=1000001&location_facet_limit=20&page=0&platform=web-desktop&size=80&user=18199604c02x5228328e
         yield scrapy.Request(self.url + urlencode(self.params), callback=self.parse)
 
     def parse(self, response):
         self.page += 1
         self.params["page"] = self.page
-        if self.params["page"] % 3 == 0:
-            self.params["user"] = self.users[1]
 
         try:
             jsn = json.loads(html.unescape(response.body.decode()))
@@ -62,20 +58,13 @@ class OlxAutos(scrapy.Spider):
                     elif dict_data["key"] == "fuel":
                         output["fuel"] = dict_data["value_name"]
 
-                    elif dict_data["key"] == "color":
-                        output["exterior_color"] = dict_data["value_name"]
-
                     elif dict_data["key"] == "km_driven":
                         output["odometer_value"] = int(dict_data["value_name"])
                         output["odometer_unit"] = "km"
 
+                # ac_installed, tpms_installed, scraped_date, scraped_from, scraped_listing_id, vehicle_url
                 output["ac_installed"] = 0
                 output["tpms_installed"] = 0
-                description = data["description"]
-                if description != "ADDITIONAL VEHICLE INFORMATION:":
-                    output["vehicle_disclosure"] = description
-
-                # scraping info
                 output["scraped_date"] = datetime.datetime.isoformat(
                     datetime.datetime.today()
                 )
@@ -93,22 +82,19 @@ class OlxAutos(scrapy.Spider):
                         + output["scraped_listing_id"]
                     )
 
-                # picture_list
+                # picture_list, city, country
                 img = data["images"][0]
                 output["picture_list"] = json.dumps([img["url"]])
+                output["city"] = data["locations_resolved"]["ADMIN_LEVEL_3_name"]
+                output["country"] = data["locations_resolved"]["COUNTRY_name"]
 
-                # location details
-                location = data["locations_resolved"]
-                output["city"] = location["ADMIN_LEVEL_3_name"]
-                output["state_or_province"] = location["ADMIN_LEVEL_1_name"]
-                output["country"] = location["COUNTRY_name"]
-
-                # pricing details
+                # price, currency
                 output["price_retail"] = float(data["price"]["value"]["raw"])
+                output["price_wholesale"] = output["price_retail"]
                 output["currency"] = data["price"]["value"]["currency"]["iso_4217"]
 
                 # apify.pushData(output)
-                # print(output)
+                # yield output
 
             yield scrapy.Request(self.url + urlencode(self.params), callback=self.parse)
         except Exception as e:

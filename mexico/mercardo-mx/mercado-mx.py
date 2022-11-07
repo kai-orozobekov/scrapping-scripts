@@ -10,15 +10,15 @@ class Mercado(scrapy.Spider):
     download_timeout = 120
     user_agent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"
     start_urls = [
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452759#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452759%26applied_value_name%3DSUV%26applied_value_order%3D11%26applied_value_results%3D17016%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452758#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452758%26applied_value_name%3DSed%C3%A1n%26applied_value_order%3D10%26applied_value_results%3D15654%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_479344#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D479344%26applied_value_name%3DHatchback%26applied_value_order%3D6%26applied_value_results%3D7836%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452756#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452756%26applied_value_name%3DPick-Up%26applied_value_order%3D9%26applied_value_results%3D4020%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452749#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452749%26applied_value_name%3DCoup%C3%A9%26applied_value_order%3D3%26applied_value_results%3D2712%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452755#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452755%26applied_value_name%3DVan%26applied_value_order%3D14%26applied_value_results%3D960%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452750#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452750%26applied_value_name%3DFurgoneta%26applied_value_order%3D5%26applied_value_results%3D642%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452748#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452748%26applied_value_name%3DConvertible%26applied_value_order%3D2%26applied_value_results%3D546%26is_custom%3Dfalse",
-        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452753#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452753%26applied_value_name%3DMinivan%26applied_value_order%3D7%26applied_value_results%3D312%26is_custom%3Dfalse",
+        "https://autos.mercadolibre.com.mx/_VEHICLE*BODY*TYPE_452759#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D12%26applied_value_id%3D452759%26applied_value_name%3DSUV%26applied_value_order%3D10%26applied_value_results%3D19020%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452758#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452758%26applied_value_name%3DSed%C3%A1n%26applied_value_order%3D10%26applied_value_results%3D15654%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_479344#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D479344%26applied_value_name%3DHatchback%26applied_value_order%3D6%26applied_value_results%3D7836%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452756#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452756%26applied_value_name%3DPick-Up%26applied_value_order%3D9%26applied_value_results%3D4020%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452749#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452749%26applied_value_name%3DCoup%C3%A9%26applied_value_order%3D3%26applied_value_results%3D2712%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452755#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452755%26applied_value_name%3DVan%26applied_value_order%3D14%26applied_value_results%3D960%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452750#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452750%26applied_value_name%3DFurgoneta%26applied_value_order%3D5%26applied_value_results%3D642%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452748#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452748%26applied_value_name%3DConvertible%26applied_value_order%3D2%26applied_value_results%3D546%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
+        "https://autos.mercadolibre.com.mx/_NoIndex_True_VEHICLE*BODY*TYPE_452753#applied_filter_id%3DVEHICLE_BODY_TYPE%26applied_filter_name%3DTipo+de+carrocer%C3%ADa%26applied_filter_order%3D11%26applied_value_id%3D452753%26applied_value_name%3DMinivan%26applied_value_order%3D7%26applied_value_results%3D312%26is_custom%3Dfalse#VEHICLE_BODY_TYPE",
     ]
 
     def parse(self, response):
@@ -41,8 +41,9 @@ class Mercado(scrapy.Spider):
         values = response.xpath(
             "//tr[@class='andes-table__row']/td/span/text()"
         ).getall()
+
         for i in range(len(keys)):
-            print(keys[i])
+
             if keys[i] == "Marca":
                 output["make"] = values[i]
 
@@ -129,4 +130,4 @@ class Mercado(scrapy.Spider):
         output = dict(zip(list1, list2))
 
         # apify.pushData(output)
-        # print(output)
+        print(output)
