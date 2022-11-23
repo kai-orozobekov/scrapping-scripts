@@ -2,8 +2,7 @@ import json
 import scrapy
 import datetime
 import html
-
-# import apify
+import apify
 
 
 class Kavak(scrapy.Spider):
@@ -43,13 +42,13 @@ class Kavak(scrapy.Spider):
 
         # country map
         ctry_map = {
-            "mx": "MX",
-            "br": "BR",
-            "ar": "AR",
-            "tr": "TR",
-            "co": "CO",
-            "cl": "CL",
-            "pe": "PE",
+            "mx": "Mexico",
+            "br": "Brazil",
+            "ar": "Argentina",
+            "tr": "Turkey",
+            "co": "Colombia",
+            "cl": "Chile",
+            "pe": "Peru",
         }
 
         # currency codes map
@@ -57,72 +56,56 @@ class Kavak(scrapy.Spider):
             "mx": "MXN",
             "br": "BRL",
             "ar": "ARS",
-            "tr": "TRY",
+            "tr": "TRL",
             "co": "COP",
             "cl": "CLP",
             "pe": "PEN",
         }
         jsn = json.loads(html.unescape(response.body.decode()))
-        data = jsn["data"]
+        output["ac_installed"] = 0
 
-        # body type, exterior color
+        data = jsn["data"]
         if data["exteriorColor"] is not None:
             output["exterior_color"] = data["exteriorColor"]
         if data["bodyType"] is not None:
             output["body_type"] = data["bodyType"]
 
-        # engine details
         for feature in data["features"]["mainAccessories"]["items"]:
             if feature["name"] == "Litros":
                 output["engine_displacement_value"] = feature["value"]
                 output["engine_displacement_units"] = "L"
 
-        # vehicle basic information
-        output["make"] = data["make"]
-        output["model"] = data["model"]
-        output["year"] = data["carYear"]
-        output["trim"] = data["trim"]
-        output["transmission"] = data["transmission"]
-        output["tpms_installed"] = 0
-        output["ac_installed"] = 0
-
-        # scraping details
-        output["scraped_date"] = datetime.datetime.isoformat(datetime.datetime.today())
-        output["scraped_from"] = "Kavak"
-        output["scraped_listing_id"] = str(data["id"])
-        output["vehicle_url"] = "https://www.kavak.com/" + country + data["carUrl"]
-
-        # odometer details
-        output["odometer_value"] = int(data["km"])
-        if output.get("odometer_value"):
-            output["odometer_unit"] = "km"
-
-        # number of doors, seats, upholstery, ac_installed
-        other_accessories = data["features"]["otherAccessories"]
-        for feature in other_accessories:
-            categories = feature["categories"]
+        for feature in data["features"]["otherAccessories"]:
             if feature["name"] == "Exterior":
-                for category in categories:
+                for category in feature["categories"]:
                     if category["name"] == "Puertas":
                         output["doors"] = int(category["items"][0]["value"])
-            if feature["name"] == "Equipamiento y Confort":
-                for category in categories:
+            if feature["name"] == "Equipamiento":
+                for category in feature["categories"]:
                     if category["name"] == "Aire":
-                        item_dict = category["items"][0]
-                        if (
-                            item_dict["name"].lower() == "aire acondicionado"
-                            and item_dict["value"] == "Sí"
-                        ):
+                        if category["items"][0]["value"] == "Aire Acondicionado":
                             output["ac_installed"] = 1
-
             if feature["name"] == "Interior":
-                for category in categories:
+                for category in feature["categories"]:
                     if category["name"] == "Asientos":
                         output["upholstery"] = category["items"][0]["value"]
                     if category["name"] == "Pasajeros":
                         output["seats"] = int(category["items"][0]["value"])
 
-        # pictures list
+        output["make"] = data["make"]
+        output["model"] = data["model"]
+        output["year"] = int(data["carYear"])
+        output["trim"] = data["trim"]
+        output["transmission"] = data["transmission"]
+        output["tpms_installed"] = 0
+        output["scraped_date"] = datetime.datetime.isoformat(datetime.datetime.today())
+        output["scraped_from"] = "Kavak"
+        output["scraped_listing_id"] = str(data["id"])
+        output["odometer_value"] = int(data["km"])
+        if output.get("odometer_value"):
+            output["odometer_unit"] = "km"
+        output["vehicle_url"] = "https://www.kavak.com/" + country + data["carUrl"]
+
         medias = [media["media"] for media in data["media"]["inventoryMedia"]]
         medias.extend([media["media"] for media in data["media"]["internalDimples"]])
         medias.extend([media["media"] for media in data["media"]["externalDimples"]])
@@ -130,48 +113,9 @@ class Kavak(scrapy.Spider):
             ["https://images.kavak.services/" + media for media in medias]
         )
 
-        # location details
         output["city"] = data["region"]["name"]
         output["country"] = ctry_map[country]
-
-        # price details
         output["price_retail"] = float(data["price"])
         output["currency"] = curr_map[country]
 
-        # apify.pushData(output)
-
-
-"""
-word "equipment" mapping
-    equipment_map = {
-        "mx": "Equipamiento y Confort",
-        "br": "Equipamento e Conforto",
-        "ar": "Equipamiento",
-        "tr": "TRY",
-        "co": "Equipamiento",
-        "cl": "CLP",
-        "pe": "PEN",
-    }
-
-word "seating" mapping
-    seating_map = {
-        "mx": "Asientos",
-        "br": "Assentos",
-        "ar": "Equipamiento",
-        "tr": "TRY",
-        "co": "Equipamiento",
-        "cl": "CLP",
-        "pe": "PEN",
-    }
-
-word "doors" mapping
-    doors_map = {
-        "mx": "Puertas",
-        "br": "Portas",
-        "ar": "Equipamiento",
-        "tr": "TRY",
-        "co": "Equipamiento",
-        "cl": "CLP",
-        "pe": "PEN",
-    }
-"""
+        apify.pushData(output)

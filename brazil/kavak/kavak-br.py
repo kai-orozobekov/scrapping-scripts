@@ -10,7 +10,7 @@ class Kavak(scrapy.Spider):
     name = "kavak"
     download_timeout = 120
     page = 1
-    start_urls = ["https://www.kavak.com/mx/page-1/compra-de-autos"]
+    start_urls = ["https://www.kavak.com/br/page-1/carros-usados"]
 
     def parse(self, response):
         self.page += 1
@@ -103,9 +103,9 @@ class Kavak(scrapy.Spider):
             categories = feature["categories"]
             if feature["name"] == "Exterior":
                 for category in categories:
-                    if category["name"] == "Puertas":
+                    if category["name"] == "Portas":
                         output["doors"] = int(category["items"][0]["value"])
-            if feature["name"] == "Equipamiento y Confort":
+            if feature["name"] == "Equipamento e Conforto":
                 for category in categories:
                     if category["name"] == "Aire":
                         item_dict = category["items"][0]
@@ -117,9 +117,9 @@ class Kavak(scrapy.Spider):
 
             if feature["name"] == "Interior":
                 for category in categories:
-                    if category["name"] == "Asientos":
+                    if category["name"] == "Assentos":
                         output["upholstery"] = category["items"][0]["value"]
-                    if category["name"] == "Pasajeros":
+                    if category["name"] == "Passageiros":
                         output["seats"] = int(category["items"][0]["value"])
 
         # pictures list

@@ -45,6 +45,7 @@ class Mercado(scrapy.Spider):
         for i in range(len(keys)):
 
             if keys[i] == "Marca":
+                print(values[i])
                 output["make"] = values[i]
 
             elif keys[i] == "Modelo":
@@ -92,6 +93,7 @@ class Mercado(scrapy.Spider):
         output["ac_installed"] = 0
         output["tpms_installed"] = 0
         output["scraped_date"] = datetime.datetime.isoformat(datetime.datetime.today())
+        print(type(output["scraped_date"]))
         output["scraped_from"] = "Mercado Libre"
         output["scraped_listing_id"] = str(response.url.split("/")[3].split("-")[1])
         output["vehicle_url"] = response.url
@@ -115,11 +117,6 @@ class Mercado(scrapy.Spider):
             response.xpath("//p[@class='ui-pdp-description__content']/text()").extract()
         )
 
-        """
-        for key in output.keys():
-            if output[key] == "":
-                del output[key]
-        """
         # process empty fields
         list1 = []
         list2 = []
@@ -130,4 +127,4 @@ class Mercado(scrapy.Spider):
         output = dict(zip(list1, list2))
 
         # apify.pushData(output)
-        print(output)
+        # print(output)
