@@ -9,7 +9,7 @@ import html
 class Kavak(scrapy.Spider):
     name = "kavak"
     download_timeout = 120
-    url = "https://www.kavak.com/co/page-1/autos-usados"
+    url = "https://www.kavak.com/cl/page-1/autos-usados"
 
     def start_requests(self):
         yield scrapy.Request(self.url, callback=self.parse_main_page)
@@ -27,7 +27,7 @@ class Kavak(scrapy.Spider):
                     initial_url
                     + country
                     + "/tipo-"
-                    + body_type.lower()
+                    + body_type.replace(" ", "_").lower()
                     + "/color-"
                     + color.replace("é", "e").replace(" ", "_").lower()
                     + f"/page-1/"
@@ -104,7 +104,7 @@ class Kavak(scrapy.Spider):
         if "exterior_color" not in output:
             output["exterior_color"] = color.replace("_", " ")
         if "body_type" not in output:
-            output["body_type"] = body_type
+            output["body_type"] = body_type.replace("_", " ")
 
         # engine details
         if "mainAccessories" in data["features"]:
@@ -146,7 +146,7 @@ class Kavak(scrapy.Spider):
                     if category["name"] == "Aire":
                         item_dict = category["items"][0]
                         if (
-                            item_dict["name"].lower() == "tipo"
+                            item_dict["code"].lower() == "air_type"
                             and item_dict["value"] == "Aire Acondicionado"
                         ):
                             output["ac_installed"] = 1
@@ -185,7 +185,7 @@ word "equipment" mapping
         "ar": "Equipamiento",
         "tr": "TRY",
         "co": "Equipamiento",
-        "cl": "CLP",
+        "cl": "Equipamiento",
         "pe": "PEN",
     }
 
@@ -196,7 +196,7 @@ word "seating" mapping
         "ar": "Equipamiento",
         "tr": "TRY",
         "co": "Asientos",
-        "cl": "CLP",
+        "cl": "Asientos",
         "pe": "PEN",
     }
 
@@ -207,7 +207,18 @@ word "doors" mapping
         "ar": "Equipamiento",
         "tr": "TRY",
         "co": "Puertas",
-        "cl": "CLP",
+        "cl": "Puertas",
         "pe": "PEN",
+    }
+
+word "color" mapping
+    doors_map = {
+        "mx": "color",
+        "br": "cor",
+        "ar": "color",
+        "tr": "renk",
+        "co": "color",
+        "cl": "color",
+        "pe": "color",
     }
 """

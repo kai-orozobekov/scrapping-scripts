@@ -9,12 +9,39 @@ import html
 class Kavak(scrapy.Spider):
     name = "kavak"
     download_timeout = 120
-    page = 1
-    start_urls = ["https://www.kavak.com/br/page-1/carros-usados"]
+    url = "https://www.kavak.com/br/page-1/carros-usados"
+
+    def start_requests(self):
+        yield scrapy.Request(self.url, callback=self.parse_main_page)
+
+    def parse_main_page(self, response):
+        initial_url = "https://www.kavak.com/"
+        country = self.url.split("/")[3]
+        colors = response.xpath("//app-facet-color/a/text()").getall()
+        body_types = response.xpath("//app-facet-type/a/text()").getall()
+        page_links = []
+
+        for color in colors:
+            for body_type in body_types:
+                page_links.append(
+                    initial_url
+                    + country
+                    + "/tipo-"
+                    + body_type.lower()
+                    + "/cor-"
+                    + color.replace("é", "e").replace(" ", "_").lower()
+                    + f"/page-1/"
+                    + self.url.split("/")[-1]
+                )
+
+        for page_link in page_links:
+            yield scrapy.Request(page_link, callback=self.parse)
 
     def parse(self, response):
-        self.page += 1
         url = response.url
+        country = url.split("/")[3]
+        body_type = url.split("/")[4].split("-")[1]
+        color = url.split("/")[5].split("-")[1]
 
         # traverse vehicle links
         product_links = response.xpath("//a[@class='card-inner']/@href").getall()
@@ -28,17 +55,20 @@ class Kavak(scrapy.Spider):
                 yield response.follow(
                     href,
                     callback=self.detail,
-                    cb_kwargs={"country": url.split("/")[-3]},
+                    cb_kwargs={
+                        "country": country,
+                        "color": color,
+                        "body_type": body_type,
+                    },
                 )
 
-        if (
-            self.page
-            < int(response.xpath("//div[@class='results']/span[3]/text()").get()) + 1
-        ):
-            next_page = url.replace(f"page-{self.page-1}", f"page-{self.page}")
+        current_page = int(url.split("/")[-2].split("-")[1])
+        next_page = response.xpath("//div[@class='results']/span[3]/text()").get()
+        if next_page is not None and current_page < int(next_page):
+            next_page = url.replace(f"page-{current_page}", f"page-{current_page+1}")
             yield response.follow(next_page, callback=self.parse)
 
-    def detail(self, response, country):
+    def detail(self, response, country, color, body_type):
         output = {}
 
         # country map
@@ -67,15 +97,21 @@ class Kavak(scrapy.Spider):
 
         # body type, exterior color
         if data["exteriorColor"] is not None:
-            output["exterior_color"] = data["exteriorColor"]
+            output["exterior_color"] = color.replace("_", " ")
         if data["bodyType"] is not None:
             output["body_type"] = data["bodyType"]
 
+        if "exterior_color" not in output:
+            output["exterior_color"] = color
+        if "body_type" not in output:
+            output["body_type"] = body_type
+
         # engine details
-        for feature in data["features"]["mainAccessories"]["items"]:
-            if feature["name"] == "Litros":
-                output["engine_displacement_value"] = feature["value"]
-                output["engine_displacement_units"] = "L"
+        if "mainAccessories" in data["features"]:
+            for feature in data["features"]["mainAccessories"]["items"]:
+                if feature["name"] == "Litros":
+                    output["engine_displacement_value"] = feature["value"]
+                    output["engine_displacement_units"] = "L"
 
         # vehicle basic information
         output["make"] = data["make"]
@@ -110,8 +146,8 @@ class Kavak(scrapy.Spider):
                     if category["name"] == "Aire":
                         item_dict = category["items"][0]
                         if (
-                            item_dict["name"].lower() == "aire acondicionado"
-                            and item_dict["value"] == "Sí"
+                            item_dict["name"].lower() == "tipo"
+                            and item_dict["value"] == "Aire Acondicionado"
                         ):
                             output["ac_installed"] = 1
 
@@ -159,7 +195,7 @@ word "seating" mapping
         "br": "Assentos",
         "ar": "Equipamiento",
         "tr": "TRY",
-        "co": "Equipamiento",
+        "co": "Asientos",
         "cl": "CLP",
         "pe": "PEN",
     }
@@ -170,8 +206,19 @@ word "doors" mapping
         "br": "Portas",
         "ar": "Equipamiento",
         "tr": "TRY",
-        "co": "Equipamiento",
+        "co": "Puertas",
         "cl": "CLP",
         "pe": "PEN",
+    }
+
+word "color" mapping
+    doors_map = {
+        "mx": "color",
+        "br": "cor",
+        "ar": "color",
+        "tr": "renk",
+        "co": "color",
+        "cl": "color",
+        "pe": "color",
     }
 """

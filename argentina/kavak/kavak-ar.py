@@ -9,7 +9,7 @@ import html
 class Kavak(scrapy.Spider):
     name = "kavak"
     download_timeout = 120
-    url = "https://www.kavak.com/co/page-1/autos-usados"
+    url = "https://www.kavak.com/ar/page-1/autos-usados"
 
     def start_requests(self):
         yield scrapy.Request(self.url, callback=self.parse_main_page)
@@ -97,12 +97,12 @@ class Kavak(scrapy.Spider):
 
         # body type, exterior color
         if data["exteriorColor"] is not None:
-            output["exterior_color"] = data["exteriorColor"]
+            output["exterior_color"] = color.replace("_", " ")
         if data["bodyType"] is not None:
             output["body_type"] = data["bodyType"]
 
         if "exterior_color" not in output:
-            output["exterior_color"] = color.replace("_", " ")
+            output["exterior_color"] = color
         if "body_type" not in output:
             output["body_type"] = body_type
 
@@ -140,13 +140,15 @@ class Kavak(scrapy.Spider):
             if feature["name"] == "Exterior":
                 for category in categories:
                     if category["name"] == "Puertas":
-                        output["doors"] = int(category["items"][0]["value"])
+                        for item in category["items"]:
+                            if item["code"] == "number_doors":
+                                output["doors"] = int(item["value"])
             if feature["name"] == "Equipamiento":
                 for category in categories:
                     if category["name"] == "Aire":
                         item_dict = category["items"][0]
                         if (
-                            item_dict["name"].lower() == "tipo"
+                            item_dict["code"].lower() == "air_type"
                             and item_dict["value"] == "Aire Acondicionado"
                         ):
                             output["ac_installed"] = 1
@@ -154,7 +156,9 @@ class Kavak(scrapy.Spider):
             if feature["name"] == "Interior":
                 for category in categories:
                     if category["name"] == "Asientos":
-                        output["upholstery"] = category["items"][0]["value"]
+                        for item in category["items"]:
+                            if item["code"] == "seats_material":
+                                output["upholstery"] = item["value"]
                     if category["name"] == "Pasajeros":
                         output["seats"] = int(category["items"][0]["value"])
 
@@ -175,6 +179,8 @@ class Kavak(scrapy.Spider):
         output["currency"] = curr_map[country]
 
         # apify.pushData(output)
+        print(output)
+        print("\n")
 
 
 """
@@ -193,7 +199,7 @@ word "seating" mapping
     seating_map = {
         "mx": "Asientos",
         "br": "Assentos",
-        "ar": "Equipamiento",
+        "ar": "Tapizado",
         "tr": "TRY",
         "co": "Asientos",
         "cl": "CLP",
@@ -209,5 +215,16 @@ word "doors" mapping
         "co": "Puertas",
         "cl": "CLP",
         "pe": "PEN",
+    }
+
+word "color" mapping
+    doors_map = {
+        "mx": "color",
+        "br": "cor",
+        "ar": "color",
+        "tr": "renk",
+        "co": "color",
+        "cl": "color",
+        "pe": "color",
     }
 """
