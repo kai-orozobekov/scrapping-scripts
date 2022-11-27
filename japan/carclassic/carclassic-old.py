@@ -8,12 +8,13 @@ import datetime
 class CarclassicSpider(scrapy.Spider):
     name = "carClassic"
     start_urls = [
-        "https://www.carandclassic.com/classic_cars.php?category=3&country=67&sort_1=latest&search"
+        "https://www.carandclassic.com/classic_cars.php?category=3&country=127&sort_1=latest&search"
     ]
 
     def parse(self, response):
+
         product_link = response.xpath(
-            "//a[contains(@class, 'image') and contains(@class, 'outbound')]/@href"
+            "//div[@class='w-11/12 mx-auto md:mx-0 md:w-full']/article//link[@itemprop='url']/@href"
         ).getall()
         yield from response.follow_all(product_link, self.product_detail)
 
@@ -45,9 +46,7 @@ class CarclassicSpider(scrapy.Spider):
             elif "Town" in key:
                 output["city"] = data.xpath("./td[2]/text()").get()
             elif "Country" in key:
-                country = data.xpath("./td[2]/a/text()").get().strip()
-                if country.lower() == "canada":
-                    output["country"] = "CA"
+                output["country"] = data.xpath("./td[2]/a/text()").get().strip()
 
         output["ac_installed"] = 0
         output["tpms_installed"] = 0
@@ -55,12 +54,12 @@ class CarclassicSpider(scrapy.Spider):
         output["scraped_from"] = "CarClassic"
         output["scraped_listing_id"] = response.url.split("/").pop()
         output["vehicle_url"] = response.url
-
         price = response.xpath(
             "//li[@itemprop='offers']//span[@itemprop='price']/@content"
         ).get()
         if price and price.strip().isdigit():
             output["price_retail"] = float(price)
+            output["price_wholesale"] = output["price_retail"]
             output["currency"] = response.xpath(
                 "//li[@itemprop='offers']//span[@itemprop='priceCurrency']/@content"
             ).get()
@@ -72,10 +71,6 @@ class CarclassicSpider(scrapy.Spider):
         if picture_list:
             output["picture_list"] = json.dumps(picture_list)
 
-        output["vehicle_disclosure"] = response.xpath(
-            "//div[@itemprop='description']/text()"
-        ).get()
-
         # process empty fields
         list1 = []
         list2 = []
@@ -85,6 +80,7 @@ class CarclassicSpider(scrapy.Spider):
                 list2.append(v)
         output = dict(zip(list1, list2))
 
-        if output["country"] == "CA":
-            pass
-            # apify.pushData(output)
+        # apify.pushData(output)
+
+
+# yield output

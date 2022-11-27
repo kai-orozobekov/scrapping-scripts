@@ -2,8 +2,7 @@ import json
 import scrapy
 import datetime
 import html
-
-# import apify
+import apify
 
 
 class Kavak(scrapy.Spider):
@@ -27,7 +26,7 @@ class Kavak(scrapy.Spider):
                     initial_url
                     + country
                     + "/tipo-"
-                    + body_type.lower()
+                    + body_type.replace(" ", "_").lower()
                     + "/color-"
                     + color.replace("é", "e").replace(" ", "_").lower()
                     + f"/page-1/"
@@ -90,21 +89,21 @@ class Kavak(scrapy.Spider):
             "tr": "TRY",
             "co": "COP",
             "cl": "CLP",
-            "pe": "PEN",
+            "pe": "USD",
         }
         jsn = json.loads(html.unescape(response.body.decode()))
         data = jsn["data"]
 
         # body type, exterior color
         if data["exteriorColor"] is not None:
-            output["exterior_color"] = color.replace("_", " ")
+            output["exterior_color"] = data["exteriorColor"]
         if data["bodyType"] is not None:
             output["body_type"] = data["bodyType"]
 
         if "exterior_color" not in output:
-            output["exterior_color"] = color
+            output["exterior_color"] = color.replace("_", " ")
         if "body_type" not in output:
-            output["body_type"] = body_type
+            output["body_type"] = body_type.replace("_", " ")
 
         # engine details
         if "mainAccessories" in data["features"]:
@@ -178,9 +177,7 @@ class Kavak(scrapy.Spider):
         output["price_retail"] = float(data["price"])
         output["currency"] = curr_map[country]
 
-        # apify.pushData(output)
-        print(output)
-        print("\n")
+        apify.pushData(output)
 
 
 """

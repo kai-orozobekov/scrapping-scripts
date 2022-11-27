@@ -16,11 +16,11 @@ class CarxusSpider(scrapy.Spider):
         for url in self.start_urls:
             country = ""
             if url == "https://www.carxus.com/en/Inventory/Search?country=1":
-                country = "United States"
+                country = "US"
             elif url == "https://www.carxus.com/en/Inventory/Search?country=78":
-                country = "Ghana"
+                country = "GH"
             elif url == "https://www.carxus.com/en/Inventory/Search?country=151":
-                country = "Nigeria"
+                country = "NG"
             yield Request(url=url, meta={"country": country}, callback=self.parse)
 
     def parse(self, response):
@@ -75,14 +75,11 @@ class CarxusSpider(scrapy.Spider):
                 ]
             )
 
-            try:
-                titles = sel.css("div.veh-main-header span::text").getall()
-                front_title = titles[0].split(" -")[0].split(" ")
-                output["year"] = int(front_title[0])
-                output["make"] = front_title[1]
-                output["model"] = " ".join(front_title[2:]).strip()
-            except IndexError:
-                pass
+        titles = sel.css("div.veh-main-header span::text").getall()
+        front_title = titles[0].split(" -")[0].split(" ")
+        output["year"] = int(front_title[0])
+        output["make"] = front_title[1]
+        output["model"] = " ".join(front_title[2:]).strip()
 
         # pricing details
         price_field = sel.xpath('//div[@class="veh-details-price-container"]/div')
@@ -93,7 +90,9 @@ class CarxusSpider(scrapy.Spider):
             output["currency"] = currency
 
         # dealer name
-        seller_info = sel.xpath('//div[@class="veh-tech-data-header"]/text()').get()
+        seller_info = (
+            sel.xpath('//div[@class="veh-tech-data-header"]/text()').get().strip()
+        )
         if seller_info is not None:
             if "dealer" in seller_info.strip().lower():
                 dealer_info = sel.xpath(
@@ -129,7 +128,10 @@ class CarxusSpider(scrapy.Spider):
                 if key == "location":
                     location_value = value.split(",")
                     if len(location_value) == 2:
-                        output["city"] = location_value[1].strip()
+                        if output["country"].lower() == "us":
+                            output["state_or_province"] = location_value[1].strip()
+                        else:
+                            output["city"] = location_value[1].strip()
 
                 elif key == "mileage":
                     output["odometer_value"] = int(

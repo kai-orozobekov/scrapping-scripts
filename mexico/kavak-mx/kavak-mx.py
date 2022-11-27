@@ -27,7 +27,7 @@ class Kavak(scrapy.Spider):
                     initial_url
                     + country
                     + "/tipo-"
-                    + body_type.lower()
+                    + body_type.replace(" ", "_").lower()
                     + "/color-"
                     + color.replace("é", "e").replace(" ", "_").lower()
                     + f"/page-1/"

@@ -8,7 +8,7 @@ import datetime
 class CarclassicSpider(scrapy.Spider):
     name = "carClassic"
     start_urls = [
-        "https://www.carandclassic.com/classic_cars.php?category=3&country=67&sort_1=latest&search"
+        "https://www.carandclassic.com/classic_cars.php?category=3&country=127&sort_1=latest&search"
     ]
 
     def parse(self, response):
@@ -46,8 +46,8 @@ class CarclassicSpider(scrapy.Spider):
                 output["city"] = data.xpath("./td[2]/text()").get()
             elif "Country" in key:
                 country = data.xpath("./td[2]/a/text()").get().strip()
-                if country.lower() == "canada":
-                    output["country"] = "CA"
+                if country.lower() == "japan":
+                    output["country"] = "JP"
 
         output["ac_installed"] = 0
         output["tpms_installed"] = 0
@@ -85,6 +85,6 @@ class CarclassicSpider(scrapy.Spider):
                 list2.append(v)
         output = dict(zip(list1, list2))
 
-        if output["country"] == "CA":
+        if "country" in output and output["country"] == "JP":
             pass
             # apify.pushData(output)

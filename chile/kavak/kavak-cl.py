@@ -90,7 +90,7 @@ class Kavak(scrapy.Spider):
             "tr": "TRY",
             "co": "COP",
             "cl": "CLP",
-            "pe": "PEN",
+            "pe": "USD",
         }
         jsn = json.loads(html.unescape(response.body.decode()))
         data = jsn["data"]

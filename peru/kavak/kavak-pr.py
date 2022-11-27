@@ -2,13 +2,14 @@ import json
 import scrapy
 import datetime
 import html
-import apify
+
+# import apify
 
 
 class Kavak(scrapy.Spider):
     name = "kavak"
     download_timeout = 120
-    url = "https://www.kavak.com/co/page-1/autos-usados"
+    url = "https://www.kavak.com/pe/page-1/carros-usados"
 
     def start_requests(self):
         yield scrapy.Request(self.url, callback=self.parse_main_page)
@@ -145,7 +146,7 @@ class Kavak(scrapy.Spider):
                     if category["name"] == "Aire":
                         item_dict = category["items"][0]
                         if (
-                            item_dict["name"].lower() == "tipo"
+                            item_dict["code"].lower() == "air_type"
                             and item_dict["value"] == "Aire Acondicionado"
                         ):
                             output["ac_installed"] = 1
@@ -173,7 +174,7 @@ class Kavak(scrapy.Spider):
         output["price_retail"] = float(data["price"])
         output["currency"] = curr_map[country]
 
-        apify.pushData(output)
+        # apify.pushData(output)
 
 
 """
@@ -184,8 +185,8 @@ word "equipment" mapping
         "ar": "Equipamiento",
         "tr": "TRY",
         "co": "Equipamiento",
-        "cl": "CLP",
-        "pe": "PEN",
+        "cl": "Equipamiento",
+        "pe": "Equipamiento",
     }
 
 word "seating" mapping
@@ -195,8 +196,8 @@ word "seating" mapping
         "ar": "Equipamiento",
         "tr": "TRY",
         "co": "Asientos",
-        "cl": "CLP",
-        "pe": "PEN",
+        "cl": "Asientos",
+        "pe": "Asientos",
     }
 
 word "doors" mapping
@@ -206,7 +207,18 @@ word "doors" mapping
         "ar": "Equipamiento",
         "tr": "TRY",
         "co": "Puertas",
-        "cl": "CLP",
-        "pe": "PEN",
+        "cl": "Puertas",
+        "pe": "Puertas",
+    }
+
+word "color" mapping
+    doors_map = {
+        "mx": "color",
+        "br": "cor",
+        "ar": "color",
+        "tr": "renk",
+        "co": "color",
+        "cl": "color",
+        "pe": "color",
     }
 """

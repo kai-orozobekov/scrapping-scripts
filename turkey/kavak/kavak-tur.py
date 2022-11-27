@@ -2,13 +2,14 @@ import json
 import scrapy
 import datetime
 import html
-import apify
+
+# import apify
 
 
 class Kavak(scrapy.Spider):
     name = "kavak"
     download_timeout = 120
-    url = "https://www.kavak.com/co/page-1/autos-usados"
+    url = "https://www.kavak.com/tr/page-1/satilik-araba"
 
     def start_requests(self):
         yield scrapy.Request(self.url, callback=self.parse_main_page)
@@ -25,10 +26,14 @@ class Kavak(scrapy.Spider):
                 page_links.append(
                     initial_url
                     + country
-                    + "/tipo-"
+                    + "/kasa-"
                     + body_type.replace(" ", "_").lower()
-                    + "/color-"
-                    + color.replace("é", "e").replace(" ", "_").lower()
+                    + "/renk-"
+                    + color.replace("ü", "u")
+                    .replace("ş", "s")
+                    .replace("ğ", "g")
+                    .replace(" ", "_")
+                    .lower()
                     + f"/page-1/"
                     + self.url.split("/")[-1]
                 )
@@ -136,26 +141,19 @@ class Kavak(scrapy.Spider):
         other_accessories = data["features"]["otherAccessories"]
         for feature in other_accessories:
             categories = feature["categories"]
-            if feature["name"] == "Exterior":
+            if "Dış" in feature["name"]:
                 for category in categories:
-                    if category["name"] == "Puertas":
-                        output["doors"] = int(category["items"][0]["value"])
-            if feature["name"] == "Equipamiento":
-                for category in categories:
-                    if category["name"] == "Aire":
-                        item_dict = category["items"][0]
-                        if (
-                            item_dict["name"].lower() == "tipo"
-                            and item_dict["value"] == "Aire Acondicionado"
-                        ):
-                            output["ac_installed"] = 1
+                    if category["name"] == "Kapılar":
+                        for item in category["items"]:
+                            if item["code"] == "number_doors":
+                                output["doors"] = int(item["value"])
 
-            if feature["name"] == "Interior":
+            if feature["name"] == "İç":
                 for category in categories:
-                    if category["name"] == "Asientos":
-                        output["upholstery"] = category["items"][0]["value"]
-                    if category["name"] == "Pasajeros":
-                        output["seats"] = int(category["items"][0]["value"])
+                    if category["name"] == "Koltuk":
+                        for item in category["items"]:
+                            if item["code"] == "seats_material":
+                                output["upholstery"] = item["value"]
 
         # pictures list
         medias = [media["media"] for media in data["media"]["inventoryMedia"]]
@@ -173,7 +171,7 @@ class Kavak(scrapy.Spider):
         output["price_retail"] = float(data["price"])
         output["currency"] = curr_map[country]
 
-        apify.pushData(output)
+        # apify.pushData(output)
 
 
 """
@@ -184,29 +182,40 @@ word "equipment" mapping
         "ar": "Equipamiento",
         "tr": "TRY",
         "co": "Equipamiento",
-        "cl": "CLP",
-        "pe": "PEN",
+        "cl": "Equipamiento",
+        "pe": "Equipamiento",
     }
 
 word "seating" mapping
     seating_map = {
         "mx": "Asientos",
         "br": "Assentos",
-        "ar": "Equipamiento",
-        "tr": "TRY",
+        "ar": "Tapizado",
+        "tr": "Koltuk",
         "co": "Asientos",
-        "cl": "CLP",
-        "pe": "PEN",
+        "cl": "Asientos",
+        "pe": "Asientos",
     }
 
 word "doors" mapping
     doors_map = {
         "mx": "Puertas",
         "br": "Portas",
-        "ar": "Equipamiento",
-        "tr": "TRY",
+        "ar": "Puertas",
+        "tr": "Kapılar",
         "co": "Puertas",
-        "cl": "CLP",
-        "pe": "PEN",
+        "cl": "Puertas",
+        "pe": "Puertas",
+    }
+
+word "color" mapping
+    doors_map = {
+        "mx": "color",
+        "br": "cor",
+        "ar": "color",
+        "tr": "renk",
+        "co": "color",
+        "cl": "color",
+        "pe": "color",
     }
 """

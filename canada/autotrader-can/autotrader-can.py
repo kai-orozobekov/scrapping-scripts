@@ -40,6 +40,7 @@ class AutotraderSpider(scrapy.Spider):
         jsn = json.loads(jsn)
 
         output = {}
+        print(jsn)
 
         specs = jsn["specifications"].get("specs")
         for data in specs:

@@ -10,7 +10,7 @@ from scrapy import Request, Selector
 class CarxusSpider(scrapy.Spider):
     name = "carxus"
     allowed_domains = ["www.carxus.com"]
-    start_urls = ["https://www.carxus.com/en/Inventory/Search?country=1"]
+    start_urls = ["https://www.carxus.com/en/Inventory/Search?country=78"]
 
     def start_requests(self):
         for url in self.start_urls:

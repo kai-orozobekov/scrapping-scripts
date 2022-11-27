@@ -10,9 +10,7 @@ from scrapy import Selector, Request
 class CarrosSpider(scrapy.Spider):
     name = "carros"
     download_timeout = 120
-    start_urls = [
-        "https://carros.com/automobiles-for-sale/dominican-republic-co219/?page=1"
-    ]
+    start_urls = ["https://carros.com/cars-for-sale/georgia-co12/?page=1"]
 
     def start_requests(self):
         for url in self.start_urls:
@@ -172,3 +170,4 @@ class CarrosSpider(scrapy.Spider):
         output = dict(zip(list1, list2))
 
         # apify.pushData(output)
+        print(output)
