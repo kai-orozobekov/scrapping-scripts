@@ -12,7 +12,7 @@ class SbtjapanSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            "https://www.sbtjapan.com/used-cars/?custom_search=usa_inventory&location=usa&p_num=1#listbox"
+            "https://www.sbtjapan.com/used-cars/?custom_search=japan_inventory&location=japan&p_num=1#listbox"
         ]
 
         for url in urls:
@@ -77,59 +77,59 @@ class SbtjapanSpider(scrapy.Spider):
 
         # parse form data
         for i in range(len(form_data_th)):
-            key = (
-                Selector(text=form_data_th[i])
-                .xpath("//text()")
-                .get()
-                .lower()
-                .replace(":", "")
-            )
-            value = Selector(text=form_data_td[i]).xpath("//text()").get()
+            key = Selector(text=form_data_th[i]).xpath("//text()").get()
+            if key is not None:
+                key = key.lower().replace(":", "")
+                value = Selector(text=form_data_td[i]).xpath("//text()").get()
 
-            if value is not None:
-                value = value.strip()
-                if "registration year" == key:
-                    output["registration_year"] = value.split("/")[0]
-                elif "transmission" == key:
-                    output["transmission"] = value
-                elif "fuel" == key:
-                    output["fuel"] = value
-                elif "color" == key:
-                    output["exterior_color"] = value
-                elif "drive" == key:
-                    output["drive_train"] = value
-                elif "door" == key:
-                    output["doors"] = int(value)
-                elif "seating capacity" == key:
-                    output["seats"] = int(value)
-                elif "steering" == key:
-                    output["steering_position"] = value
-                elif "body type" == key:
-                    output["body_type"] = value
-                elif "engine size" == key:
-                    value = value.replace(",", "")
-                    output["engine_displacement_value"] = "".join(
-                        [i for i in list(value) if i.isdigit()]
-                    )
-                    output["engine_displacement_units"] = "".join(
-                        [i for i in list(value) if i.isalpha()]
-                    )
-                elif "stock id" == key:
-                    output["scraped_listing_id"] = value
-                elif "chassis number" == key:
-                    output["chassis_number"] = value
-                elif "mileage" == key:
-                    # Mileage value and unit are connected and need to be taken out circularly
-                    output["odometer_value"] = int(
-                        "".join([i for i in list(value) if i.isdigit() or i == "."])
-                    )
-                    output["odometer_unit"] = "".join(
-                        [i for i in list(value) if i.isalpha()]
-                    )
-                elif "inventory location" == key:
-                    # location may be null,may be have "country" and "city" may be only "country"
-                    if value and "-" in value:
-                        output["city"] = value.split("-")[0].strip()
+                if value is not None:
+                    value = value.strip()
+                    if "registration year" == key:
+                        output["registration_year"] = value.split("/")[0]
+                    elif "year" == key:
+                        output["registration_year"] = value.split("/")[0]
+                    elif "transmission" == key:
+                        output["transmission"] = value
+                    elif "fuel" == key:
+                        output["fuel"] = value
+                    elif "color" == key:
+                        output["exterior_color"] = value
+                    elif "drive" == key:
+                        output["drive_train"] = value
+                    elif "door" == key:
+                        output["doors"] = int(value)
+                    elif "seats" == key:
+                        output["seats"] = int(value)
+                    elif "steering" == key:
+                        output["steering_position"] = value
+                    elif "body type" == key:
+                        output["body_type"] = value
+                    elif "engine type" == key:
+                        output["engine_block_type"] = value
+                    elif "engine size" == key:
+                        value = value.replace(",", "")
+                        output["engine_displacement_value"] = "".join(
+                            [i for i in list(value) if i.isdigit()]
+                        )
+                        output["engine_displacement_units"] = "".join(
+                            [i for i in list(value) if i.isalpha()]
+                        )
+                    elif "stock id" == key:
+                        output["scraped_listing_id"] = value
+                    elif "chassis number" == key:
+                        output["chassis_number"] = value
+                    elif "mileage" == key:
+                        # Mileage value and unit are connected and need to be taken out circularly
+                        output["odometer_value"] = int(
+                            "".join([i for i in list(value) if i.isdigit() or i == "."])
+                        )
+                        output["odometer_unit"] = "".join(
+                            [i for i in list(value) if i.isalpha()]
+                        )
+                    elif "inventory location" == key:
+                        # location may be null,may be have "country" and "state_or_province" may be only "country"
+                        if value and "-" in value:
+                            output["city"] = value.split("-")[0].strip()
 
         output["ac_installed"] = 0
         output["tpms_installed"] = 0

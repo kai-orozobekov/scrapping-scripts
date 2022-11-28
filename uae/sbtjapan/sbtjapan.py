@@ -12,7 +12,7 @@ class SbtjapanSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            "https://www.sbtjapan.com/used-cars/?custom_search=usa_inventory&location=usa&p_num=1#listbox"
+            "https://www.sbtjapan.com/used-cars/?custom_search=uae_inventory&location=uae&p_num=1#listbox"
         ]
 
         for url in urls:
@@ -127,7 +127,7 @@ class SbtjapanSpider(scrapy.Spider):
                         [i for i in list(value) if i.isalpha()]
                     )
                 elif "inventory location" == key:
-                    # location may be null,may be have "country" and "city" may be only "country"
+                    # location may be null,may be have "country" and "state_or_province" may be only "country"
                     if value and "-" in value:
                         output["city"] = value.split("-")[0].strip()
 
