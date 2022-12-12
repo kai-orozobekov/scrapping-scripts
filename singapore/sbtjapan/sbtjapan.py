@@ -101,7 +101,7 @@ class SbtjapanSpider(scrapy.Spider):
                 elif "door" == key:
                     output["doors"] = int(value)
                 elif "seating capacity" == key:
-                    output["seats"] = int(value)
+                    output["seats"] = int(value.split("[")[0])
                 elif "steering" == key:
                     output["steering_position"] = value
                 elif "body type" == key:

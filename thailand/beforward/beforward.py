@@ -116,6 +116,9 @@ class BeforwardSpider(scrapy.Spider):
                 elif key == "fuel":
                     output["fuel"] = value
                 elif key == "seats":
+                    value = value.split(" ")[0]
+                    if "(" in value:
+                        value = value.split("(")[0]
                     output["seats"] = int(value)
                 elif key == "drive":
                     output["drive_train"] = value

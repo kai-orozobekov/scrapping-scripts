@@ -9,9 +9,7 @@ from scrapy.downloadermiddlewares.retry import get_retry_request
 class Autochek(scrapy.Spider):
     name = "autochek"
     download_timeout = 120
-    start_urls = [
-        "https://autochek.africa/en/ug/cars-for-sale?country=ng&page_number=1"
-    ]
+    start_urls = ["https://autochek.africa/ke/cars-for-sale?page_number=1"]
 
     def parse(self, response):
         jsn = response.xpath("//script[@id='__NEXT_DATA__']").get()
@@ -25,8 +23,7 @@ class Autochek(scrapy.Spider):
         jsn = json.loads(jsn)
 
         # traverse vehicle links
-        cars = jsn["props"]["pageProps"].get("cars", "")
-        print(cars)
+        cars = jsn["props"]["pageProps"].get("cars", "")["result"]
         if not cars or cars == "":
             new_request_or_none = get_retry_request(
                 response.request, spider=self, reason="empty", max_retry_times=10
@@ -38,13 +35,11 @@ class Autochek(scrapy.Spider):
                 product_links, self.product_detail, dont_filter=True
             )
 
-            last_number = (
-                jsn["props"]["pageProps"]["pagination"]["total"]
-                // jsn["props"]["pageProps"]["pagination"]["pageSize"]
-            )
-            current_page = jsn["props"]["pageProps"]["pagination"]["currentPage"]
-            if last_number and current_page:
-                if int(current_page) + 1 < int(last_number) + 2:
+            pagination = jsn["props"]["pageProps"].get("cars", "").get("pagination", "")
+            last_page = pagination["total"] // pagination["pageSize"]
+            current_page = pagination["currentPage"]
+            if last_page and current_page:
+                if int(current_page) + 1 < int(last_page) + 2:
                     url = response.url.replace(
                         f"page_number={int(current_page)}",
                         f"page_number={int(current_page)+1}",
@@ -63,7 +58,7 @@ class Autochek(scrapy.Spider):
         )
         jsn = dict(json.loads(jsn))
         page_props = jsn["props"]["pageProps"]
-        car = page_props.get("car", "")
+        car = page_props.get("carResponse", "")
 
         if not car or car == "":
             new_request_or_none = get_retry_request(
@@ -72,14 +67,14 @@ class Autochek(scrapy.Spider):
             yield new_request_or_none
         else:
             # pictures list
-            car_media = page_props["carMediaList"]
+            car_media = page_props["carMedia"]["carMediaList"]
             pictures = [item["url"] for item in car_media]
             pictures.append(car["imageUrl"])
             output["picture_list"] = json.dumps(pictures)
 
             # pricing
             output["price_retail"] = float(car.get("marketplacePrice"))
-            output["currency"] = page_props.get("country").get("currency")
+            output["currency"] = "KSH"
 
             # scraping info
             output["vehicle_url"] = response.url
@@ -92,8 +87,7 @@ class Autochek(scrapy.Spider):
             # location
             output["city"] = car.get("city")
             output["state_or_province"] = car.get("state")
-            if page_props.get("country").get("country").lower() == "uganda":
-                output["country"] = "UG"
+            output["country"] = car.get("country")
 
             # odometer
             output["odometer_value"] = int(car.get("mileage"))
@@ -101,7 +95,7 @@ class Autochek(scrapy.Spider):
 
             output["ac_installed"] = 0
             output["tpms_installed"] = 0
-            inspection_report = page_props.get("inspectionReport")
+            inspection_report = page_props.get("inspection")
             if inspection_report is not None:
                 output["inspection_description"] = inspection_report.get("pdfReport")
                 output["inspection_date"] = inspection_report.get("updatedAt")
@@ -123,7 +117,7 @@ class Autochek(scrapy.Spider):
             output["interior_color"] = car.get("interiorColor")
 
             # vehicle features
-            features_list = page_props["carFeatureList"]
+            features_list = page_props["carFeatures"]["carFeatureList"]
             for feature in features_list:
                 feature_name = feature.get("feature").get("name")
                 if feature_name.lower() == "air conditioning":

@@ -1,8 +1,7 @@
 import datetime
 import json
 import scrapy
-
-# import apify
+import apify
 
 
 class JpcartradeSpider(scrapy.Spider):
@@ -12,7 +11,7 @@ class JpcartradeSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            "https://www.japanesecartrade.com/stock_list.php?make_id=&maker_id=&mfg_from=&month_from=&mfg_to=&month_to=&fuel_id=&seat_capacity=&transmission_id=&type_id=&subtype_id=&drive=&mileage_from=&mileage_to=&price_from=&price_to=&cc_from=&cc_to=&wheel_drive=&color_id=&stock_country=thailand&search_keyword=&SA=make&isSearched=1&sort=&desksearch=desksearch&seq="
+            "https://www.japanesecartrade.com/stock_list.php?make_id=&maker_id=&mfg_from=&month_from=&mfg_to=&month_to=&fuel_id=&seat_capacity=&transmission_id=&type_id=&subtype_id=&drive=&mileage_from=&mileage_to=&price_from=&price_to=&cc_from=&cc_to=&wheel_drive=&color_id=&stock_country=thailand&search_keyword=&SA=make&isSearched=1&sort=&desksearch=desksearch&seq=&page=0"
         ]
 
         for url in urls:
@@ -20,7 +19,7 @@ class JpcartradeSpider(scrapy.Spider):
             country_name = url.split("stock_country=")[1]
             if "uae" in country_name:
                 country = "AE"
-            elif "united" in country_name:
+            elif "uk" in country_name:
                 country = "GB"
             elif "korea" in country_name:
                 country = "KR"
@@ -40,16 +39,17 @@ class JpcartradeSpider(scrapy.Spider):
             )
 
     def parse(self, response):
-        # pagination
-        total_records = int(
-            response.xpath('//strong[@class="ttlNowRecords"]/text()')
-            .get()
-            .replace(",", "")
-        )
-        total_pages = int(total_records / 10)
 
-        for page_number in range(0, total_pages + 1):
-            link = response.url + "&page=" + str(page_number)
+        # pagination
+        total_pages = response.xpath('//ul[@class="pagination"]/li//text()').getall()
+        filtered_pages = []
+
+        for i in range(int(len(total_pages) / 2)):
+            if total_pages[i].isnumeric():
+                filtered_pages.append(int(total_pages[i]))
+
+        for page_number in filtered_pages:
+            link = response.url[:-1] + str(page_number - 1)
             yield response.follow(
                 link,
                 meta={"country": response.meta["country"]},
@@ -84,10 +84,7 @@ class JpcartradeSpider(scrapy.Spider):
             if key == "door":
                 output["doors"] = int(data_values[i])
             if "seat" in key:
-                if "[" in data_values[i]:
-                    output["seats"] = int(data_values[i].split("[")[0])
-                if "(" in data_values[i]:
-                    output["seats"] = int(data_values[i].split("(")[0])
+                output["seats"] = int(data_values[i].split("[")[0])
             if key == "wheel drive":
                 output["drive_train"] = data_values[i]
             if "jct" in key:
@@ -156,11 +153,9 @@ class JpcartradeSpider(scrapy.Spider):
                 or option == "auto-air condition"
                 or option == "ac"
                 or option == "aac"
-                or option == "a/c-front"
-                or option == "a/c-rear"
             ):
                 output["ac_installed"] = 1
-            elif option == "leather seats" or option == "leather seat":
+            elif option == "leather seats":
                 output["upholstery"] = "leather"
             else:
                 rest_vehicle_options.append(option)
@@ -174,4 +169,4 @@ class JpcartradeSpider(scrapy.Spider):
         if description is not None:
             output["vehicle_disclosure"] = description
 
-        # apify.pushData(output)
+        apify.pushData(output)

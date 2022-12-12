@@ -12,7 +12,7 @@ class JpcartradeSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            "https://www.japanesecartrade.com/stock_list.php?make_id=&maker_id=&mfg_from=&month_from=&mfg_to=&month_to=&fuel_id=&seat_capacity=&transmission_id=&type_id=&subtype_id=&drive=&mileage_from=&mileage_to=&price_from=&price_to=&cc_from=&cc_to=&wheel_drive=&color_id=&stock_country=thailand&search_keyword=&SA=make&isSearched=1&sort=&desksearch=desksearch&seq="
+            "https://www.japanesecartrade.com/stock_list.php?make_id=&maker_id=&mfg_from=&month_from=&mfg_to=&month_to=&fuel_id=&seat_capacity=&transmission_id=&type_id=&subtype_id=&drive=&mileage_from=&mileage_to=&price_from=&price_to=&cc_from=&cc_to=&wheel_drive=&color_id=&stock_country=japan&search_keyword=&SA=make&isSearched=1&sort=&desksearch=desksearch&seq="
         ]
 
         for url in urls:
@@ -174,4 +174,5 @@ class JpcartradeSpider(scrapy.Spider):
         if description is not None:
             output["vehicle_disclosure"] = description
 
+        print(output)
         # apify.pushData(output)

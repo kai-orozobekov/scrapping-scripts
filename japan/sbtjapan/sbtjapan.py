@@ -82,7 +82,7 @@ class SbtjapanSpider(scrapy.Spider):
                 key = key.lower().replace(":", "")
                 value = Selector(text=form_data_td[i]).xpath("//text()").get()
 
-                if value is not None:
+                if value is not None and value != "-":
                     value = value.strip()
                     if "registration year" == key:
                         output["registration_year"] = value.split("/")[0]
@@ -99,7 +99,7 @@ class SbtjapanSpider(scrapy.Spider):
                     elif "door" == key:
                         output["doors"] = int(value)
                     elif "seats" == key:
-                        output["seats"] = int(value)
+                        output["seats"] = int(value.split("[")[0])
                     elif "steering" == key:
                         output["steering_position"] = value
                     elif "body type" == key:
