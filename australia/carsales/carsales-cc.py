@@ -1,9 +1,22 @@
-import cloudscraper
+import asyncio
+from pyppeteer import launch
 
-scraper = cloudscraper.create_scraper()  # returns a CloudScraper instance
-# Or: scraper = cloudscraper.CloudScraper()  # CloudScraper inherits from requests.Session
-print(
-    scraper.get(
-        "https://www.carsales.com.au/cars/details/2022-suzuki-vitara-manual-2wd-my22/OAG-AD-21354127/?Cr=0"
-    ).text
-)  # => "<!DOCTYPE html><html><head>..."
+
+async def main():
+    # launch chromium browser in the background
+    browser = await launch()
+    # open a new tab in the browser
+    page = await browser.newPage()
+    # add URL to a new page and then open it
+    await page.goto(
+        " https://www.carsales.com.au/cars/details/2016-hyundai-tucson-30-special-edition-auto-awd-my17/OAG-AD-21017349/?Cr=8"
+    )
+    # create a screenshot of the page and save it
+    await page.screenshot({"path": "python.png"})
+    # close the browser
+    await browser.close()
+
+
+print("Starting...")
+asyncio.get_event_loop().run_until_complete(main())
+print("Screenshot has been taken")

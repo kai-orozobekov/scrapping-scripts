@@ -5,6 +5,7 @@ import datetime
 import re
 from scrapy.http.response import Response
 from scrapy.selector import Selector
+from scrapy_playwright.page import PageMethod
 
 # import apify
 
@@ -34,14 +35,17 @@ class CarsalesSpider(scrapy.Spider):
             yield scrapy.Request(
                 url=link,
                 callback=self.detail,
-                meta={
-                    "playwright": True,
-                    "playwright_include_page": True,
-                    "playwright_context": datetime.datetime.isoformat(
-                        datetime.datetime.today()
-                    ),
-                },
-                errback=self.errback_close_page,
+                meta=dict(
+                    playwright=True,
+                    playwright_include_page=True,
+                    playwright_page_methods=[
+                        PageMethod(
+                            "evaluate",
+                            "setInterval(function () {var scrollingElement = (document.scrollingElement || document.body);scrollingElement.scrollTop = scrollingElement.scrollHeight;}, 200);",
+                        ),
+                        PageMethod("wait_for_load_state", "networkidle"),
+                    ],
+                ),
             )
 
         # pagination
@@ -53,11 +57,6 @@ class CarsalesSpider(scrapy.Spider):
             )
 
     async def detail(self, response):
-        page = response.meta["playwright_page"]
-        await page.context.close()  # close the context
-        await page.close()
-        del page
-        gc.collect()
 
         output = {}
 
@@ -165,52 +164,5 @@ class CarsalesSpider(scrapy.Spider):
                 elif key == "cylinders":
                     output["engine_cylinders"] = int(value)
 
-        # print(output)
+        print(output)
         # apify.pushData(output)
-
-    # Method of Retry Request
-    async def errback_close_page(self, failure):
-        page = failure.request.meta["playwright_page"]
-        await page.context.close()  # close the context
-        await page.close()
-        del page
-        gc.collect()
-
-        if (
-            not self.max_req.get(failure.request.url)
-            or self.max_req.get(failure.request.url) < self.max_retry
-        ):
-            if "all-cars.html" in failure.request.url:
-                yield scrapy.Request(
-                    url=failure.request.url,
-                    callback=self.parse,
-                    meta={
-                        "playwright": True,
-                        "playwright_include_page": True,
-                        "playwright_context": datetime.datetime.isoformat(
-                            datetime.datetime.today()
-                        ),
-                    },
-                    errback=self.errback_close_page,
-                    dont_filter=True,
-                )
-
-            elif "all-cars.html" not in failure.request.url:
-                yield scrapy.Request(
-                    url=failure.request.url,
-                    callback=self.detail,
-                    meta={
-                        "playwright": True,
-                        "playwright_include_page": True,
-                        "playwright_context": datetime.datetime.isoformat(
-                            datetime.datetime.today()
-                        ),
-                    },
-                    errback=self.errback_close_page,
-                    dont_filter=True,
-                )
-            self.max_req[failure.request.url] = (
-                self.max_req.get(failure.request.url, 0) + 1
-            )
-            if len(self.max_req) >= 30:
-                self.remove_success_url()

@@ -87,14 +87,14 @@ class Encuentra24(scrapy.Spider):
                 output["engine_displacement_value"] = info_values[i]
 
             elif info_names[i] == "price":
+
                 output["price_retail"] = float(
-                    info_values[i]
-                    .replace("$", "")
-                    .replace(",", "")
-                    .replace(".", "")
-                    .replace("RD", "")
+                    info_values[i].replace("$", "").replace(",", "").replace("RD", "")
                 )
-                output["currency"] = "DOP"
+                if "RD" in info_values[i]:
+                    output["currency"] = "DOP"
+                else:
+                    output["currency"] = "USD"
 
         # ad_details
         detail_names = response.xpath(
