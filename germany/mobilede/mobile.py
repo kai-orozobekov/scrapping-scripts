@@ -311,15 +311,13 @@ class MySpider(scrapy.Spider):
     }
 
     def start_requests(self):
-
-        url = "https://suchen.mobile.de/"
+        url = "https://suchen.mobile.de/fahrzeuge/search.html?dam=0&isSearchRequest=true&ref=quickSearch&sb=rel&vc=Car"
         yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-
         product_links = response.xpath(
-            '//div[@class="cBox-body cBox-body--resultitem"]'
-        )
+            '//a[@class="link--muted no--text--decoration result-item"]/@href'
+        ).getall()
         print("\n")
         print(product_links)
         print("\n")

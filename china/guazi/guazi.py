@@ -158,7 +158,6 @@ class GuaziSpider(scrapy.Spider):
             price = eval(data["service_tracking_info"]).get("price")
             if price:
                 output["price_retail"] = float(price)
-                output["price_wholesale"] = output["price_retail"]
                 output["currency"] = "CNY"
 
             # process empty fields
